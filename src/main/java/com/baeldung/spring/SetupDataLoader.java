@@ -45,18 +45,21 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         }
 
         // == create initial privileges
-        final Privilege readPrivilege = createPrivilegeIfNotFound("READ_PRIVILEGE");
-        final Privilege writePrivilege = createPrivilegeIfNotFound("WRITE_PRIVILEGE");
-        final Privilege passwordPrivilege = createPrivilegeIfNotFound("CHANGE_PASSWORD_PRIVILEGE");
+        final Privilege readPrivilege = createPrivilegeIfNotFound(PrivilegeEnum.READ_PRIVILEGE.name());
+        final Privilege writePrivilege = createPrivilegeIfNotFound(PrivilegeEnum.WRITE_PRIVILEGE.name());
+        final Privilege passwordPrivilege = createPrivilegeIfNotFound(PrivilegeEnum.CHANGE_PASSWORD_PRIVILEGE.name());
 
         // == create initial roles
         final List<Privilege> adminPrivileges = new ArrayList<>(Arrays.asList(readPrivilege, writePrivilege, passwordPrivilege));
+        final List<Privilege> managerPrivileges = new ArrayList<>(Arrays.asList(readPrivilege, writePrivilege));
         final List<Privilege> userPrivileges = new ArrayList<>(Arrays.asList(readPrivilege, passwordPrivilege));
-        final Role adminRole = createRoleIfNotFound("ROLE_ADMIN", adminPrivileges);
-        createRoleIfNotFound("ROLE_USER", userPrivileges);
+        final Role adminRole = createRoleIfNotFound(RoleEnum.ROLE_ADMIN.name(), adminPrivileges);
+        final  Role roleManager = createRoleIfNotFound(RoleEnum.ROLE_MANAGER.name(), managerPrivileges);
+        createRoleIfNotFound(RoleEnum.ROLE_USER.name(), userPrivileges);
 
         // == create initial user
         createUserIfNotFound("test@test.com", "Test", "Test", "test", new ArrayList<>(Arrays.asList(adminRole)));
+        createUserIfNotFound("manager@test.com", "manager", "Test", "test", new ArrayList<>(Arrays.asList(roleManager)));
 
         alreadySetup = true;
     }
@@ -96,6 +99,18 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         user.setRoles(roles);
         user = userRepository.save(user);
         return user;
+    }
+
+    public enum PrivilegeEnum {
+        READ_PRIVILEGE,
+        WRITE_PRIVILEGE,
+        CHANGE_PASSWORD_PRIVILEGE
+    }
+
+    public enum RoleEnum {
+        ROLE_ADMIN,
+        ROLE_MANAGER,
+        ROLE_USER
     }
 
 }
