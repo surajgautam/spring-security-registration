@@ -1,22 +1,24 @@
 package com.baeldung.spring;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 import com.baeldung.persistence.dao.PrivilegeRepository;
 import com.baeldung.persistence.dao.RoleRepository;
 import com.baeldung.persistence.dao.UserRepository;
 import com.baeldung.persistence.model.Privilege;
 import com.baeldung.persistence.model.Role;
 import com.baeldung.persistence.model.User;
+import com.baeldung.security.enums.PrivilegeEnum;
+import com.baeldung.security.enums.RoleEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 @Component
 public class SetupDataLoader implements ApplicationListener<ContextRefreshedEvent> {
@@ -45,18 +47,22 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         }
 
         // == create initial privileges
-        final Privilege readPrivilege = createPrivilegeIfNotFound("READ_PRIVILEGE");
-        final Privilege writePrivilege = createPrivilegeIfNotFound("WRITE_PRIVILEGE");
-        final Privilege passwordPrivilege = createPrivilegeIfNotFound("CHANGE_PASSWORD_PRIVILEGE");
+        final Privilege readPrivilege = createPrivilegeIfNotFound(PrivilegeEnum.READ_PRIVILEGE.name());
+        final Privilege writePrivilege = createPrivilegeIfNotFound(PrivilegeEnum.WRITE_PRIVILEGE.name());
+        final Privilege passwordPrivilege = createPrivilegeIfNotFound(PrivilegeEnum.CHANGE_PASSWORD_PRIVILEGE.name());
+        final Privilege managePrivilege = createPrivilegeIfNotFound(PrivilegeEnum.MANAGE_PRIVILEGE.name());
 
         // == create initial roles
         final List<Privilege> adminPrivileges = new ArrayList<>(Arrays.asList(readPrivilege, writePrivilege, passwordPrivilege));
+        final List<Privilege> managerPrivileges = new ArrayList<>(Arrays.asList(readPrivilege, managePrivilege));
         final List<Privilege> userPrivileges = new ArrayList<>(Arrays.asList(readPrivilege, passwordPrivilege));
-        final Role adminRole = createRoleIfNotFound("ROLE_ADMIN", adminPrivileges);
-        createRoleIfNotFound("ROLE_USER", userPrivileges);
+        final Role adminRole = createRoleIfNotFound(RoleEnum.ROLE_ADMIN.name(), adminPrivileges);
+        final Role managerRole = createRoleIfNotFound(RoleEnum.ROLE_MANAGER.name(), managerPrivileges);
+        createRoleIfNotFound(RoleEnum.ROLE_USER.name(), userPrivileges);
 
         // == create initial user
         createUserIfNotFound("test@test.com", "Test", "Test", "test", new ArrayList<>(Arrays.asList(adminRole)));
+        createUserIfNotFound("manager@test.com", "manager", "Test", "test", new ArrayList<>(Arrays.asList(managerRole)));
 
         alreadySetup = true;
     }
